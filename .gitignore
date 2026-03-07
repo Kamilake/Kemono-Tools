@@ -1,0 +1,35 @@
+# Node
+node_modules/
+dist/
+
+# Rust / Cargo
+**/target/
+
+# Tauri generated
+src-tauri/gen/schemas/
+
+# Tauri downloads
+src-tauri/downloads/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.*
+
+# Logs
+*.log
+
+# Sensitive / debug files
+cookies.txt
+posts_response.txt
+src-tauri/test_output.txt
+src-tauri/test_err.txt

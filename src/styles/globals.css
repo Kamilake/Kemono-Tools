@@ -1,0 +1,392 @@
+:root {
+  --bg: #1a1a2e;
+  --surface: #16213e;
+  --surface2: #0f3460;
+  --accent: #e94560;
+  --text: #eee;
+  --text-dim: #999;
+  --border: #333;
+  --success: #4caf50;
+  --warning: #ff9800;
+  --error: #f44336;
+  --radius: 8px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+#root {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.app-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.app-header h1 {
+  font-size: 1.6rem;
+  color: var(--accent);
+}
+
+/* Controls bar */
+.controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.service-selector {
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  min-width: 120px;
+}
+
+.user-search {
+  display: flex;
+  flex: 1;
+  gap: 4px;
+}
+
+.user-search-input {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.search-btn {
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.search-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Download path */
+.download-path {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.download-path-label {
+  white-space: nowrap;
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+.download-path-input {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+}
+
+/* Post list */
+.post-count {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.post-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.post-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  gap: 12px;
+}
+
+.post-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.post-title {
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.post-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.post-excerpt {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.download-btn {
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.download-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Skeleton */
+.skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-item {
+  padding: 14px 16px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.skeleton-title,
+.skeleton-meta,
+.skeleton-bar {
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-title {
+  height: 18px;
+  width: 60%;
+  margin-bottom: 8px;
+}
+
+.skeleton-meta {
+  height: 12px;
+  width: 40%;
+  margin-bottom: 6px;
+}
+
+.skeleton-bar {
+  height: 12px;
+  width: 80%;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Download status */
+.download-status {
+  margin-top: 20px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.download-status-title {
+  font-size: 15px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.download-counts {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: normal;
+}
+
+.download-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.download-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.download-item.status-downloading {
+  border-left: 3px solid var(--accent);
+}
+
+.download-item.status-completed {
+  border-left: 3px solid var(--success);
+}
+
+.download-item.status-failed {
+  border-left: 3px solid var(--error);
+}
+
+.download-item.status-pending {
+  border-left: 3px solid var(--warning);
+}
+
+.download-item.status-retrying {
+  border-left: 3px solid #ff6f00;
+}
+
+.dl-retrying {
+  color: #ff6f00;
+  font-weight: 600;
+}
+
+.dl-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progress-bar {
+  width: 120px;
+  height: 16px;
+  background: var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s;
+}
+
+.progress-text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 10px;
+  line-height: 16px;
+  color: white;
+}
+
+.dl-status-label {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* Error & empty */
+.error-msg {
+  padding: 12px;
+  background: rgba(244, 67, 54, 0.1);
+  border: 1px solid var(--error);
+  border-radius: var(--radius);
+  color: var(--error);
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.empty-msg {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-dim);
+  font-size: 14px;
+}
+
+/* Login form */
+.login-form {
+  max-width: 360px;
+  margin: 40px auto;
+  padding: 24px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.login-form h3 {
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.login-form input {
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.login-form button {
+  padding: 10px;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.login-form button:disabled {
+  opacity: 0.5;
+}
