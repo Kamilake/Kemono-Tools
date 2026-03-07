@@ -194,6 +194,28 @@ impl KemonoClient {
         serde_json::from_str::<Post>(&text)
             .map_err(|e| format!("Failed to parse post: {}", e))
     }
+
+    /// Fetch post detail as raw JSON (preserves all fields for HTML generation).
+    pub async fn get_post_detail_raw(&self, session: &str, service: &str, creator_id: &str, post_id: &str) -> Result<serde_json::Value, String> {
+        let url = format!("{}/v1/{}/user/{}/post/{}", self.server, service, creator_id, post_id);
+        let headers = self.build_headers(session);
+
+        let resp = self.client
+            .get(&url)
+            .headers(headers)
+            .send()
+            .await
+            .map_err(|e| format!("Get post detail failed: {}", e))?;
+
+        if !resp.status().is_success() {
+            let status = resp.status();
+            let text = resp.text().await.unwrap_or_default();
+            return Err(format!("Get post detail failed ({}): {}", status, text));
+        }
+
+        let text = resp.text().await.map_err(|e| format!("Read body failed: {}", e))?;
+        serde_json::from_str(&text).map_err(|e| format!("Failed to parse post detail JSON: {}", e))
+    }
 }
 
 // Tests are in tests/api_test.rs (standalone binary, no Tauri dependency)

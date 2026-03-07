@@ -1,5 +1,6 @@
 mod api;
 mod downloader;
+mod html_generator;
 mod settings;
 
 use api::{KemonoClient, Post};
@@ -113,13 +114,29 @@ async fn download_post_files(
     };
 
     let client = KemonoClient::new(&settings.server);
+
+    // Fetch raw JSON (for HTML generation) and parsed Post (for file list)
+    let detail_json = client.get_post_detail_raw(&session, &service, &creator_id, &post_id).await?;
     let post = client.get_post(&session, &service, &creator_id, &post_id).await?;
+
+    // Build folder name: "번호 - 제목"
+    let folder_name = html_generator::sanitize_folder_name(
+        &format!("{} - {}", post_id, post.title)
+    );
 
     let download_root = resolve_download_root(&settings, &state.settings_mgr.path);
     let base_dir = download_root
         .join(&service)
         .join(&creator_id)
-        .join(&post_id);
+        .join(&folder_name);
+
+    // Generate post info HTML
+    let html_content = html_generator::generate_post_html(&detail_json);
+    let html_path = base_dir.join("post_info.html");
+    tokio::fs::create_dir_all(&base_dir).await
+        .map_err(|e| format!("Failed to create directory: {}", e))?;
+    tokio::fs::write(&html_path, html_content.as_bytes()).await
+        .map_err(|e| format!("Failed to write post_info.html: {}", e))?;
 
     // Collect all files: main file + attachments
     // URL format: {server}/data{path}?f={name}
