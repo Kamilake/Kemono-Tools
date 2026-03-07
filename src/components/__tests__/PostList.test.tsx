@@ -25,31 +25,39 @@ const mockPosts: Post[] = [
   },
 ];
 
+const defaultProps = {
+  onDownload: () => {},
+  onCancelDownload: () => {},
+  onRetryDownload: () => {},
+  downloadingPosts: new Set<string>(),
+  downloadsByPost: new Map(),
+};
+
 describe("PostList", () => {
   it("shows skeleton when loading", () => {
     const { container } = render(
-      <PostList posts={[]} loading={true} error={null} onDownload={() => {}} downloadingPosts={new Set()} />
+      <PostList posts={[]} loading={true} error={null} {...defaultProps} />
     );
     expect(container.querySelector(".skeleton-list")).toBeInTheDocument();
   });
 
   it("shows error message", () => {
     render(
-      <PostList posts={[]} loading={false} error="Something went wrong" onDownload={() => {}} downloadingPosts={new Set()} />
+      <PostList posts={[]} loading={false} error="Something went wrong" {...defaultProps} />
     );
     expect(screen.getByText(/Something went wrong/)).toBeInTheDocument();
   });
 
   it("shows empty message when no posts", () => {
     render(
-      <PostList posts={[]} loading={false} error={null} onDownload={() => {}} downloadingPosts={new Set()} />
+      <PostList posts={[]} loading={false} error={null} {...defaultProps} />
     );
     expect(screen.getByText(/게시글이 없습니다/)).toBeInTheDocument();
   });
 
   it("renders post items", () => {
     render(
-      <PostList posts={mockPosts} loading={false} error={null} onDownload={() => {}} downloadingPosts={new Set()} />
+      <PostList posts={mockPosts} loading={false} error={null} {...defaultProps} />
     );
     expect(screen.getByText("테스트 게시글")).toBeInTheDocument();
     expect(screen.getByText("두번째 게시글")).toBeInTheDocument();
@@ -58,7 +66,7 @@ describe("PostList", () => {
 
   it("shows file count per post", () => {
     render(
-      <PostList posts={mockPosts} loading={false} error={null} onDownload={() => {}} downloadingPosts={new Set()} />
+      <PostList posts={mockPosts} loading={false} error={null} {...defaultProps} />
     );
     expect(screen.getByText("📎 2개 파일")).toBeInTheDocument();
     expect(screen.getByText("📎 0개 파일")).toBeInTheDocument();

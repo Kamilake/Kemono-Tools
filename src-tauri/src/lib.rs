@@ -175,6 +175,16 @@ async fn download_post_files(
 }
 
 #[tauri::command]
+async fn cancel_post_download(
+    state: State<'_, AppState>,
+    app: tauri::AppHandle,
+    post_id: String,
+) -> Result<(), String> {
+    state.download_queue.cancel_post(&post_id, &state.settings_mgr, &app).await;
+    Ok(())
+}
+
+#[tauri::command]
 async fn debug_download_path(state: State<'_, AppState>) -> Result<String, String> {
     let settings = state.settings_mgr.get()?;
     let download_root = resolve_download_root(&settings, &state.settings_mgr.path);
@@ -229,6 +239,7 @@ pub fn run() {
             get_posts,
             get_post,
             download_post_files,
+            cancel_post_download,
             debug_download_path,
             get_resolved_download_path,
         ])

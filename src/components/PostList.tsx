@@ -1,4 +1,4 @@
-import type { Post } from "../types";
+import type { Post, DownloadProgress } from "../types";
 import { PostItem } from "./PostItem";
 import { Skeleton } from "./Skeleton";
 
@@ -7,10 +7,13 @@ interface Props {
   loading: boolean;
   error: string | null;
   onDownload: (post: Post) => void;
+  onCancelDownload: (postId: string) => void;
+  onRetryDownload: (post: Post) => void;
   downloadingPosts: Set<string>;
+  downloadsByPost: Map<string, DownloadProgress[]>;
 }
 
-export function PostList({ posts, loading, error, onDownload, downloadingPosts }: Props) {
+export function PostList({ posts, loading, error, onDownload, onCancelDownload, onRetryDownload, downloadingPosts, downloadsByPost }: Props) {
   if (loading) {
     return <Skeleton count={6} />;
   }
@@ -31,7 +34,10 @@ export function PostList({ posts, loading, error, onDownload, downloadingPosts }
           key={post.id}
           post={post}
           onDownload={onDownload}
+          onCancel={onCancelDownload}
+          onRetry={onRetryDownload}
           downloading={downloadingPosts.has(post.id)}
+          downloads={downloadsByPost.get(post.id) || []}
         />
       ))}
     </div>

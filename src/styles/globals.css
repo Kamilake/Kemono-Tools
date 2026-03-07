@@ -130,6 +130,7 @@ body {
 
 .post-item {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   padding: 14px 16px;
@@ -167,6 +168,13 @@ body {
   line-height: 1.4;
 }
 
+.post-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
 .download-btn {
   padding: 8px 16px;
   border-radius: var(--radius);
@@ -176,11 +184,158 @@ body {
   cursor: pointer;
   font-size: 13px;
   white-space: nowrap;
+  min-width: 130px;
+  text-align: center;
+  transition: background 0.3s;
+}
+
+.download-btn--active {
+  border: 1px solid var(--accent);
+  color: white;
+  font-weight: 600;
+}
+
+.download-btn--completed {
+  background: var(--success);
+  cursor: default;
+}
+
+.download-btn--failed {
+  background: var(--error);
 }
 
 .download-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.6;
   cursor: not-allowed;
+}
+
+.cancel-btn,
+.retry-btn {
+  padding: 6px 8px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.cancel-btn:hover {
+  background: var(--error);
+  border-color: var(--error);
+}
+
+.retry-btn:hover {
+  background: var(--warning);
+  border-color: var(--warning);
+}
+
+/* Per-post download file list */
+.post-downloads {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.post-dl-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  gap: 8px;
+}
+
+.post-dl--downloading {
+  border-left: 2px solid var(--accent);
+}
+
+.post-dl--completed {
+  border-left: 2px solid var(--success);
+}
+
+.post-dl--failed {
+  border-left: 2px solid var(--error);
+}
+
+.post-dl--pending {
+  border-left: 2px solid var(--warning);
+}
+
+.post-dl--retrying {
+  border-left: 2px solid #ff6f00;
+}
+
+.post-dl-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-dim);
+}
+
+.post-dl-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.post-dl-bar {
+  width: 80px;
+  height: 10px;
+  background: var(--border);
+  border-radius: 5px;
+  overflow: hidden;
+  position: relative;
+}
+
+.post-dl-bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s;
+  border-radius: 5px;
+}
+
+.post-dl-pct {
+  font-size: 11px;
+  color: var(--text);
+  min-width: 36px;
+  text-align: right;
+}
+
+.post-dl-size {
+  color: var(--text-dim);
+  font-size: 10px;
+}
+
+.post-dl-pending {
+  color: var(--warning);
+  font-size: 11px;
+}
+
+.post-dl-done {
+  font-size: 11px;
+}
+
+.post-dl-fail {
+  color: var(--error);
+  font-size: 11px;
+}
+
+.post-dl-retry {
+  color: #ff6f00;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 /* Skeleton */
@@ -228,109 +383,7 @@ body {
   100% { background-position: -200% 0; }
 }
 
-/* Download status */
-.download-status {
-  margin-top: 20px;
-  padding: 14px 16px;
-  background: var(--surface);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-}
-
-.download-status-title {
-  font-size: 15px;
-  margin-bottom: 10px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.download-counts {
-  display: flex;
-  gap: 8px;
-  font-size: 12px;
-  font-weight: normal;
-}
-
-.download-items {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.download-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 10px;
-  border-radius: 4px;
-  font-size: 13px;
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.download-item.status-downloading {
-  border-left: 3px solid var(--accent);
-}
-
-.download-item.status-completed {
-  border-left: 3px solid var(--success);
-}
-
-.download-item.status-failed {
-  border-left: 3px solid var(--error);
-}
-
-.download-item.status-pending {
-  border-left: 3px solid var(--warning);
-}
-
-.download-item.status-retrying {
-  border-left: 3px solid #ff6f00;
-}
-
-.dl-retrying {
-  color: #ff6f00;
-  font-weight: 600;
-}
-
-.dl-name {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.progress-bar {
-  width: 120px;
-  height: 16px;
-  background: var(--border);
-  border-radius: 8px;
-  overflow: hidden;
-  position: relative;
-}
-
-.progress-fill {
-  height: 100%;
-  background: var(--accent);
-  transition: width 0.3s;
-}
-
-.progress-text {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  text-align: center;
-  font-size: 10px;
-  line-height: 16px;
-  color: white;
-}
-
-.dl-status-label {
-  font-size: 12px;
-  color: var(--text-dim);
-}
+/* (Download status panel removed — downloads now shown inline per post) */
 
 /* Error & empty */
 .error-msg {

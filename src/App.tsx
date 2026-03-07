@@ -1,11 +1,10 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { ServiceSelector } from "./components/ServiceSelector";
 import { UserSearch } from "./components/UserSearch";
 import { PostList } from "./components/PostList";
 import { DownloadPath } from "./components/DownloadPath";
-import { DownloadStatus } from "./components/DownloadStatus";
 import { LoginForm } from "./components/LoginForm";
 import { useSettings } from "./hooks/useSettings";
 import { usePosts } from "./hooks/usePosts";
@@ -22,22 +21,33 @@ export default function App() {
   // Listen for download progress events
   useEffect(() => {
     const unlisten = listen<DownloadProgress>("download-progress", (event) => {
+      const dl = event.payload;
+
+      // Remove cancelled items from state
+      if (dl.status === "cancelled") {
+        setDownloads((prev) => {
+          const next = new Map(prev);
+          next.delete(dl.id);
+          return next;
+        });
+        return;
+      }
+
       setDownloads((prev) => {
         const next = new Map(prev);
-        next.set(event.payload.id, event.payload);
+        next.set(dl.id, dl);
         return next;
       });
 
-      if (event.payload.status === "completed" || event.payload.status === "failed") {
-        // Check if all downloads for a post are done
+      if (dl.status === "completed" || dl.status === "failed") {
         setTimeout(() => {
           setDownloads((current) => {
             const postDownloads = Array.from(current.values());
             const byPost = new Map<string, DownloadProgress[]>();
-            for (const dl of postDownloads) {
-              const postId = dl.id.split("_")[0];
+            for (const d of postDownloads) {
+              const postId = d.id.split("_")[0];
               if (!byPost.has(postId)) byPost.set(postId, []);
-              byPost.get(postId)!.push(dl);
+              byPost.get(postId)!.push(d);
             }
             for (const [postId, dls] of byPost) {
               if (dls.every((d) => d.status === "completed" || d.status === "failed")) {
@@ -58,6 +68,17 @@ export default function App() {
       unlisten.then((fn) => fn());
     };
   }, []);
+
+  // Group downloads by post ID
+  const downloadsByPost = useMemo(() => {
+    const map = new Map<string, DownloadProgress[]>();
+    for (const dl of downloads.values()) {
+      const postId = dl.id.split("_")[0];
+      if (!map.has(postId)) map.set(postId, []);
+      map.get(postId)!.push(dl);
+    }
+    return map;
+  }, [downloads]);
 
   // Check if session exists
   useEffect(() => {
@@ -93,6 +114,50 @@ export default function App() {
       }
     },
     [settings.service, currentCreatorId]
+  );
+
+  const handleCancelDownload = useCallback(
+    async (postId: string) => {
+      try {
+        await invoke("cancel_post_download", { postId });
+        setDownloadingPosts((prev) => {
+          const next = new Set(prev);
+          next.delete(postId);
+          return next;
+        });
+        // Clear downloads for this post
+        setDownloads((prev) => {
+          const next = new Map(prev);
+          for (const [key, dl] of next) {
+            if (key.startsWith(postId + "_")) {
+              next.delete(key);
+            }
+          }
+          return next;
+        });
+      } catch (e) {
+        console.error("Cancel failed:", e);
+      }
+    },
+    []
+  );
+
+  const handleRetryDownload = useCallback(
+    async (post: Post) => {
+      // Clear old failed downloads for this post
+      setDownloads((prev) => {
+        const next = new Map(prev);
+        for (const [key, dl] of next) {
+          if (key.startsWith(post.id + "_") && (dl.status === "failed" || dl.status === "completed")) {
+            next.delete(key);
+          }
+        }
+        return next;
+      });
+      // Re-trigger download
+      handleDownload(post);
+    },
+    [handleDownload]
   );
 
   const handleLogin = useCallback(
@@ -161,10 +226,11 @@ export default function App() {
         loading={loading}
         error={error}
         onDownload={handleDownload}
+        onCancelDownload={handleCancelDownload}
+        onRetryDownload={handleRetryDownload}
         downloadingPosts={downloadingPosts}
+        downloadsByPost={downloadsByPost}
       />
-
-      <DownloadStatus downloads={downloads} />
     </div>
   );
 }

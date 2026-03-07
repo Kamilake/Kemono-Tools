@@ -2,6 +2,7 @@ use crate::settings::{DownloadState, SettingsManager};
 use futures::StreamExt;
 use reqwest::header::{HeaderValue, ACCEPT, COOKIE, IF_RANGE, RANGE};
 use sha2::{Digest, Sha256};
+use std::collections::HashSet;
 use std::path::Path;
 use std::sync::Arc;
 use tauri::{AppHandle, Emitter};
@@ -26,10 +27,7 @@ pub struct DownloadProgress {
 struct QueueInner {
     queue: Vec<DownloadTask>,
     is_running: bool,
-}
-
-pub struct DownloadQueue {
-    inner: Mutex<QueueInner>,
+    cancelled_posts: HashSet<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -42,12 +40,72 @@ struct DownloadTask {
     session: String,
 }
 
+pub struct DownloadQueue {
+    inner: Mutex<QueueInner>,
+}
+
 impl DownloadQueue {
+    /// Cancel all pending and active downloads for a given post.
+    /// Removes pending tasks from the queue and marks the post as cancelled
+    /// so the active download (if any) will be interrupted.
+    pub async fn cancel_post(
+        self: &Arc<Self>,
+        post_id: &str,
+        settings_mgr: &Arc<SettingsManager>,
+        app: &AppHandle,
+    ) {
+        let removed_tasks = {
+            let mut inner = self.inner.lock().await;
+            inner.cancelled_posts.insert(post_id.to_string());
+            let mut removed = Vec::new();
+            inner.queue.retain(|t| {
+                if t.post_id == post_id {
+                    removed.push(t.clone());
+                    false
+                } else {
+                    true
+                }
+            });
+            removed
+        };
+
+        // Emit cancelled status for removed pending tasks
+        for task in &removed_tasks {
+            let _ = app.emit("download-progress", DownloadProgress {
+                id: task.id.clone(),
+                downloaded: 0,
+                total: 0,
+                status: "cancelled".to_string(),
+                file_name: task.file_name.clone(),
+                attempt: 0,
+                max_retries: 0,
+                retry_secs: 0,
+                error: None,
+            });
+            let _ = settings_mgr.update(|s| {
+                s.downloads.remove(&task.id);
+            });
+        }
+    }
+
+    /// Check if a post has been cancelled and clear the flag.
+    async fn is_cancelled(&self, post_id: &str) -> bool {
+        let inner = self.inner.lock().await;
+        inner.cancelled_posts.contains(post_id)
+    }
+
+    /// Clear the cancelled flag for a post (called when cancel is fully processed).
+    async fn clear_cancelled(&self, post_id: &str) {
+        let mut inner = self.inner.lock().await;
+        inner.cancelled_posts.remove(post_id);
+    }
+
     pub fn new() -> Self {
         Self {
             inner: Mutex::new(QueueInner {
                 queue: Vec::new(),
                 is_running: false,
+                cancelled_posts: HashSet::new(),
             }),
         }
     }
@@ -144,6 +202,26 @@ impl DownloadQueue {
         let mut stale_failures: u32 = 0;
 
         loop {
+            // Check cancellation before each attempt
+            if self.is_cancelled(&task.post_id).await {
+                self.clear_cancelled(&task.post_id).await;
+                let _ = app.emit("download-progress", DownloadProgress {
+                    id: task.id.clone(),
+                    downloaded: 0,
+                    total: 0,
+                    status: "cancelled".to_string(),
+                    file_name: task.file_name.clone(),
+                    attempt,
+                    max_retries: max_stale_retries,
+                    retry_secs: 0,
+                    error: None,
+                });
+                let _ = settings_mgr.update(|s| {
+                    s.downloads.remove(&task.id);
+                });
+                return;
+            }
+
             attempt += 1;
 
             // snapshot bytes on disk before this attempt
@@ -404,6 +482,12 @@ impl DownloadQueue {
         let mut last_save = std::time::Instant::now();
 
         while let Some(chunk) = stream.next().await {
+            // Check cancellation during download
+            if self.is_cancelled(&task.post_id).await {
+                drop(file);
+                return Err("cancelled".to_string());
+            }
+
             let chunk = chunk.map_err(|e| {
                 let msg = format!("Stream error at {} bytes: {}", downloaded, e);
                 log::error!("[Download] {}", msg);

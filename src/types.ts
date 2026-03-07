@@ -42,11 +42,13 @@ export interface Settings {
   downloads: Record<string, DownloadState>;
 }
 
+export type DownloadStatus = "pending" | "downloading" | "completed" | "failed" | "retrying" | "cancelled";
+
 export interface DownloadProgress {
   id: string;
   downloaded: number;
   total: number;
-  status: string;
+  status: DownloadStatus;
   file_name: string;
   attempt: number;
   max_retries: number;
