@@ -91,28 +91,41 @@ body {
   cursor: not-allowed;
 }
 
-/* Download path */
-.download-path {
+/* Download path bar */
+.download-path-bar {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin-bottom: 16px;
-}
-
-.download-path-label {
-  white-space: nowrap;
-  font-size: 14px;
-  color: var(--text-dim);
-}
-
-.download-path-input {
-  flex: 1;
-  padding: 8px 12px;
+  padding: 6px 12px;
   border-radius: var(--radius);
   border: 1px solid var(--border);
   background: var(--surface);
+}
+
+.download-path-text {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.icon-btn {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
   color: var(--text);
+  cursor: pointer;
   font-size: 14px;
+  line-height: 1;
+}
+
+.icon-btn:hover {
+  background: var(--accent);
 }
 
 /* Post list */

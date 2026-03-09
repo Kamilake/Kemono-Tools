@@ -1,10 +1,10 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { open } from "@tauri-apps/plugin-dialog";
 import { ServiceSelector } from "./components/ServiceSelector";
 import { UserSearch } from "./components/UserSearch";
 import { PostList } from "./components/PostList";
-import { DownloadPath } from "./components/DownloadPath";
 import { LoginForm } from "./components/LoginForm";
 import { useSettings } from "./hooks/useSettings";
 import { usePosts } from "./hooks/usePosts";
@@ -201,25 +201,40 @@ export default function App() {
         <UserSearch onSearch={handleSearch} loading={loading} />
       </div>
 
-      <DownloadPath
-        value={settings.download_path}
-        onChange={(download_path) => updateSettings({ download_path })}
-      />
-
-      <button
-        className="debug-btn"
-        style={{ margin: "4px 0", padding: "4px 8px", fontSize: "12px", opacity: 0.7 }}
-        onClick={async () => {
-          try {
-            const info = await invoke<string>("debug_download_path");
-            alert(info);
-          } catch (e) {
-            alert("Error: " + e);
-          }
-        }}
-      >
-        🔍 다운로드 경로 확인
-      </button>
+      <div className="download-path-bar">
+        <span className="download-path-text" title={settings.download_path}>
+          📁 {settings.download_path}
+        </span>
+        <button
+          className="icon-btn"
+          title="다운로드 경로 변경"
+          onClick={async () => {
+            const selected = await open({
+              directory: true,
+              multiple: false,
+              defaultPath: settings.download_path,
+            });
+            if (selected) {
+              updateSettings({ download_path: selected });
+            }
+          }}
+        >
+          …
+        </button>
+        <button
+          className="icon-btn"
+          title="다운로드 폴더 열기"
+          onClick={async () => {
+            try {
+              await invoke("open_download_folder");
+            } catch (e) {
+              console.error("Failed to open folder:", e);
+            }
+          }}
+        >
+          📂
+        </button>
+      </div>
 
       <PostList
         posts={posts}

@@ -8,6 +8,7 @@ use downloader::DownloadQueue;
 use settings::{Settings, SettingsManager};
 use std::sync::Arc;
 use tauri::{Manager, State};
+use tauri_plugin_opener::OpenerExt;
 
 struct AppState {
     settings_mgr: Arc<SettingsManager>,
@@ -205,9 +206,23 @@ async fn get_resolved_download_path(state: State<'_, AppState>) -> Result<String
     Ok(download_root.display().to_string())
 }
 
+#[tauri::command]
+async fn open_download_folder(state: State<'_, AppState>, app: tauri::AppHandle) -> Result<(), String> {
+    let settings = state.settings_mgr.get()?;
+    let download_root = resolve_download_root(&settings, &state.settings_mgr.path);
+    if !download_root.exists() {
+        std::fs::create_dir_all(&download_root).map_err(|e| e.to_string())?;
+    }
+    app.opener()
+        .open_path(download_root.to_string_lossy().as_ref(), None::<&str>)
+        .map_err(|e| e.to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(
@@ -242,6 +257,7 @@ pub fn run() {
             cancel_post_download,
             debug_download_path,
             get_resolved_download_path,
+            open_download_folder,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
